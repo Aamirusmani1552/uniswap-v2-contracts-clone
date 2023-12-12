@@ -19,6 +19,7 @@ contract UniswapV2Pair is ERC20{
     error UniswapV2Pair__ZeroAmountProvidedForSwap();
     error UniswapV2Pair__InavlidK();
     error TransferFailed();
+    error UniswapV2Pair__AlreadyInitialized();
 
     //////////////////////
     // Events and Enums //
@@ -32,8 +33,8 @@ contract UniswapV2Pair is ERC20{
     // Storage Variables //
     ///////////////////////
 
-    address private immutable token0;
-    address private immutable token1;
+    address private token0;
+    address private token1;
 
     uint112 private reserve0;
     uint112 private reserve1;
@@ -48,8 +49,21 @@ contract UniswapV2Pair is ERC20{
     // Constructor //
     /////////////////
 
-    constructor(address _token0, address _token1) ERC20("UniswapV2Pair", "UNI-V2", 18){
-        if(token0 == address(0) || token1 == address(0)){
+    constructor() ERC20("UniswapV2Pair", "UNI-V2", 18){
+
+    }
+
+    ///////////////////////
+    // Initialize Method //
+    ///////////////////////
+
+    function Initialize(address _token0, address _token1) public {
+        // checking if already initialized
+        if(token0 != address(0) || token1 != address(0)){
+            revert UniswapV2Pair__AlreadyInitialized();
+        }
+
+        if(_token0 == address(0) || _token1 == address(0)){
             revert UniswapV2Pair__AddressZeroProvided();
         }
         token0 = _token0;
@@ -118,7 +132,7 @@ contract UniswapV2Pair is ERC20{
         }
 
         // old balances
-        (uint112 _reserve0, uint112 _reserve1) = getReserves();
+        (uint112 _reserve0, uint112 _reserve1,) = getReserves();
 
         
         // balance to withdraw should not be greater than the reserve
@@ -186,7 +200,7 @@ contract UniswapV2Pair is ERC20{
     }
     
 
-    function getReserves() public view returns (uint112 _reserve0, uint112 _reserve1){
-        return (reserve0, reserve1);
+    function getReserves() public view returns (uint112 _reserve0, uint112 _reserve1, uint256 blockTimestampLast){
+        return (reserve0, reserve1, blockTimestampLast);
     }
 }  
